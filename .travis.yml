@@ -1,1 +1,3 @@
 language: clojure
+before_script:
+  - echo "{:port 3000 :dbname \"./fast5watch_test.db\" :nanopore-run-base-dir \"/tmp/fast5watch-test-dir\"}" > test-config.edn
