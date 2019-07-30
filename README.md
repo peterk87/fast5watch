@@ -1,12 +1,14 @@
 # fast5watch - Watch and archive Nanopore runs
 
+[![Build Status](https://travis-ci.com/peterk87/fast5watch.svg?branch=master)](https://travis-ci.com/peterk87/fast5watch)
+
 Clojure web server application for 
 - watching a directory for new Nanopore runs and FAST5 files
 - storing that info in a H2 DB
 - archiving runs and FAST5 files to remote and/or local directories
 - providing a RESTful HTTP API for accessing run and FAST5 info and files 
 
-*generated using Luminus version "3.42"*
+*generated using [Luminus](http://www.luminusweb.net/) version "3.42"*
 
 ## Prerequisites
 
@@ -38,6 +40,8 @@ Example `dev-config.edn`
  :nrepl-port 7000
  ;; Base Nanopore run watch directory
  :nanopore-run-base-dir "/tmp/fast5watch-test"
+ ;; Database connection URL (needed for migrations)
+ :database-url "jdbc:h2:./fast5watch_test.db"
  ;; H2 database name
  :dbname "./fast5watch_dev.db"
  ;; [optional] Remote archiving directory
@@ -46,12 +50,21 @@ Example `dev-config.edn`
  :local-base-dir "/tmp/fast5watch-local-test"}
 ```
 
-Initialize  database
+Initialize local H2 database:
+
     lein run migrate
+
+Start a web server for the app:
+
+    lein run
+    
+Connect to the nREPL.
+
+Run `lein test-refresh` to run tests automatically on changes.
 
 ### nREPL
 
-Specify a port in your `dev-config.edn` file:
+Specify an `:nrepl-port` (e.g. `7000`) in your `dev-config.edn` file:
 
 ```clojure
 {:dev true
@@ -82,6 +95,27 @@ Check that you can eval basic expressions:
 => 2
 ```
 
+### Running tests
+
+Create a `test-config.edn` file in the project root, e.g.:
+
+```clojure
+;; test-config.edn
+{:port 3000
+ :database-url "jdbc:h2:./fast5watch_test.db"
+ :dbname "./fast5watch_test.db"
+ :nanopore-run-base-dir "/tmp/fast5watch-test-dir"}
+```
+
+Run tests with:
+
+```clojure
+lein test
+# OR recommended
+lein test-refresh
+```
+
+It's recommended that you run `lein test-refresh` while developing to run tests automatically with [lein-test-refresh](https://github.com/jakemcc/lein-test-refresh) which "is a Leiningen plug-in that automatically refreshes and then runs your `clojure.test` tests when a file in your project changes".
 
 
 ## License
