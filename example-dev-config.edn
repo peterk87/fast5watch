@@ -1,0 +1,20 @@
+; You can use this file as an example template for your dev-config.edn file
+{:dev                   true                                ;; development mode
+ :port                  3000                                ;; web server port
+ ;; when :nrepl-port is set the application starts the nREPL server on load
+ :nrepl-port            7000
+ ;; Base Nanopore run watch directory
+ :nanopore-run-base-dir "/tmp/fast5watch-dev-test"
+ ;; Database connection URL (needed for migrations)
+ :database-url          "jdbc:h2:./fast5watch_dev.db"
+ ;; H2 database name
+ :dbname                "./fast5watch_dev.db"
+ ;; [optional] Remote archiving directory
+ ;:remote-base-dir       "/Storage/fast5watch-test/fast5watch-remote-test"
+ ;; [optional] Local archiving directory
+ :local-base-dir        "/Storage/fast5watch-test/fast5watch-remote-test"
+ ;; endpoint host to send id of recently acquired FAST5 files
+ :fast5-basecaller-host "127.0.0.1"
+ ;; endpoint port to send id of recently acquired FAST5 files
+ :fast5-basecaller-port 8000
+ }

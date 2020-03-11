@@ -1,7 +1,9 @@
 (ns fast5watch.db.queries
   (:require [fast5watch.db.core :refer [*db*]]
             [next.jdbc.sql :as sql]
-            [next.jdbc :as jdbc]))
+            [next.jdbc :as jdbc]
+            [clojure.tools.logging :as log])
+  (:import (java.util Date)))
 
 ; Column vectors
 
@@ -89,8 +91,11 @@
 (defn add-run-to-db!
   "Add Nanopore run to DB and return the newly added run data as a map."
   ([conn {:keys [original-path] :as m}]
-   (create-run! conn m)
-   (get-run-by-original-path conn original-path))
+   (let [run (get-run-by-original-path conn original-path)]
+     (if (empty? run)
+       (do (create-run! conn m)
+           (get-run-by-original-path conn original-path))
+       run)))
   ([m]
    (add-run-to-db! *db* m)))
 
@@ -111,6 +116,11 @@
   ([conn] (sql/query conn ["select * from nanopore_runs"] sql-opts))
   ([] (get-all-runs *db*)))
 
+(defn get-all-incomplete-runs
+  "Get all incomplete Nanopore runs"
+  ([conn] (sql/query conn ["select * from nanopore_runs where complete = false"] sql-opts))
+  ([] (get-all-incomplete-runs *db*)))
+
 (defn update-run!
   "Update a Nanopore run in the DB given a Nanopore run id and map of
    values to update"
@@ -120,6 +130,25 @@
                 {:id id}
                 sql-opts))
   ([m id] (update-run! *db* m id)))
+
+(defn set-run-complete!
+  "Set Nanopore run as completed."
+  ([conn id] (let [seq-run (get-run-by-id conn id)]
+               (if (:complete seq-run)
+                 (log/warn (str "Run id=" id " already completed at " (:stopped seq-run) "!"))
+                 (update-run! conn {:complete true
+                                    :stopped  (Date.)
+                                    :active   false} id))))
+  ([id] (set-run-complete! *db* id)))
+
+(comment
+  (update-run! *db* {:complete false
+                     :stopped  (Date.)
+                     :active   false} 4)
+  (set-run-complete! 5)
+  (get-all-incomplete-runs)
+  (get-all-runs)
+  )
 
 (defn create-fast5!
   ([conn m] (sql/insert! conn :fast5-files

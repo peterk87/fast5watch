@@ -4,10 +4,17 @@
             [fast5watch.db.queries :as db]
             [fast5watch.config :refer [env]]
             [digest]
+            [clj-http.client :as client]
             [mount.core :refer [defstate]]
             [clojure.java.io :as io])
   (:import (java.util Date)
            (java.io File)))
+
+(defn fast5-basecalling-uri
+  [id]
+  (let [host (env :fast5-basecaller-host)
+        port (env :fast5-basecaller-port)]
+    (str "http://" host ":" port "/fast5?id=" id)))
 
 (defn copy-file-to-dir
   "Copy a file to a destination directory similar to `cp file.txt dir/`"
@@ -56,12 +63,23 @@
           (db/update-fast5! {k (str dest-file)} id))))
     (db/get-f5-with-run-info original-path)))
 
+(defn send-fast5-id-to-guppywuppy
+  [{:keys [id] :as f5info}]
+  (let [uri (fast5-basecalling-uri id)]
+    (log/debug "Sending FAST5 id=" id " for basecalling at '" uri "'")
+    (client/get uri
+                {:async? true}
+                (fn [response] (log/info "resp: " response))
+                (fn [ex] (log/error "exception: " (.getMessage ex)))))
+  f5info)
+
 (defn start [concurrency]
   (let [in-chan (chan)
         out-chan (chan)]
     (pipeline-blocking concurrency
                        out-chan
                        (map (comp
+                              send-fast5-id-to-guppywuppy
                               archive-fast5!
                               db/add-fast5-to-db!
                               fast5-file-map))

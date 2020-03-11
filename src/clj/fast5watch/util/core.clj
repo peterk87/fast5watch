@@ -2,7 +2,8 @@
   (:require [clojure.string :as s]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io])
-  (:import (java.io File)))
+  (:import (java.io File)
+           (java.util Date)))
 
 ; Regular expression pattern to capture info about Nanopore sequencing run
 (def regex-fast5-abspath
@@ -48,3 +49,13 @@
           (log/info (str "Archive directory at '" p "' already exists!"))
           (str p))
         (log/error (str "Directory '" p "' not created!"))))))
+
+(defn vals-by-keys
+  "Get the values of some keys `ks` of a collection of maps `m`"
+  [ks m]
+  (map #(map % ks) m))
+
+(defn date-now
+  ^Date
+  []
+  (Date.))

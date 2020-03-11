@@ -13,4 +13,10 @@
            :timestamp "20190722_1200",
            :instrument "MN12345",
            :flowcell-id "FAK12345",
-           :protocol-run-id-uuid8 "deadbeef"}))))
+           :protocol-run-id-uuid8 "deadbeef"})))
+  (testing "Extract values from a collection of maps given list of keys"
+    (is
+      (= (vals-by-keys [:a :c :e] [{:a 1 :b 2 :c 3 :d 4 :e 5}
+                                   {:a 4 :e 10}])
+         '((1 3 5)
+           (4 nil 10))))))
